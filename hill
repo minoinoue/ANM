@@ -1,10 +1,11 @@
 #include <iostream>
 #include <string>
 #include <iomanip> // Cho setw
+#include <cctype>   // Cho isalpha va toupper
 
 using namespace std;
 
-// Hàm tính nghịch đảo modulo của một số (nếu tồn tại)
+// Ham tinh nghich dao modulo cua mot so (neu ton tai)
 int timNghichDaoModulo(int a, int m) {
     a = a % m;
     for (int x = 1; x < m; x++) {
@@ -12,15 +13,15 @@ int timNghichDaoModulo(int a, int m) {
             return x;
         }
     }
-    return -1; // Không tìm thấy nghịch đảo
+    return -1; // Khong tim thay nghich dao
 }
 
-// Hàm tính định thức của ma trận 2x2
+// Ham tinh dinh thuc cua ma tran 2x2
 int tinhDinhThuc2x2(int maTran[2][2]) {
     return (maTran[0][0] * maTran[1][1] - maTran[0][1] * maTran[1][0]);
 }
 
-// Hàm tính nghịch đảo modulo của ma trận 2x2 (nếu tồn tại)
+// Ham tinh nghich dao modulo cua ma tran 2x2 (neu ton tai)
 bool timNghichDaoMaTran2x2(int maTran[2][2], int modulo, int maTranNghichDao[2][2]) {
     int dinhThuc = tinhDinhThuc2x2(maTran);
     dinhThuc = dinhThuc % modulo;
@@ -30,109 +31,11 @@ bool timNghichDaoMaTran2x2(int maTran[2][2], int modulo, int maTranNghichDao[2][
 
     int nghichDaoDinhThuc = timNghichDaoModulo(dinhThuc, modulo);
     if (nghichDaoDinhThuc == -1) {
-        cerr << "Lỗi: Định thức không khả nghịch modulo " << modulo << "." << endl;
+        cerr << "Loi: Dinh thuc khong kha nghich modulo " << modulo << "." << endl;
         return false;
     }
 
     maTranNghichDao[0][0] = (maTran[1][1] * nghichDaoDinhThuc) % modulo;
     maTranNghichDao[0][1] = ((-maTran[0][1]) * nghichDaoDinhThuc % modulo + modulo) % modulo;
     maTranNghichDao[1][0] = ((-maTran[1][0]) * nghichDaoDinhThuc % modulo + modulo) % modulo;
-    maTranNghichDao[1][1] = (maTran[0][0] * nghichDaoDinhThuc) % modulo;
-
-    return true;
-}
-
-// Hàm nhân hai ma trận (cho trường hợp nhân ma trận khóa với khối văn bản)
-void nhanMaTran(int maTran1[2][2], int maTran2[2][1], int modulo, int ketQua[2][1]) {
-    for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 1; ++j) {
-            ketQua[i][j] = 0;
-            for (int k = 0; k < 2; ++k) {
-                ketQua[i][j] = (ketQua[i][j] + maTran1[i][k] * maTran2[k][j]) % modulo;
-            }
-        }
-    }
-}
-
-// Hàm chuyển văn bản thành mảng số
-void chuyenVanBanThanhSo(const string& vanBan, int mangSo[]) {
-    for (size_t i = 0; i < vanBan.length(); ++i) {
-        if (isalpha(vanBan[i])) {
-            mangSo[i] = toupper(vanBan[i]) - 'A';
-        } else {
-            // Xử lý ký tự không phải chữ cái (có thể bỏ qua hoặc báo lỗi)
-            mangSo[i] = -1; // Đánh dấu ký tự không hợp lệ
-        }
-    }
-}
-
-// Hàm chuyển mảng số thành văn bản
-void chuyenSoThanhVanBan(const int mangSo[], int doDai, string& vanBanKetQua) {
-    vanBanKetQua = "";
-    for (int i = 0; i < doDai; ++i) {
-        if (mangSo[i] >= 0 && mangSo[i] < 26) {
-            vanBanKetQua += (char)('A' + mangSo[i]);
-        } else {
-            vanBanKetQua += '?'; // Ký tự thay thế cho giá trị không hợp lệ
-        }
-    }
-}
-
-// Hàm mã hóa Hill
-string maHoaHill(const string& vanBanRo, int khoa[2][2], int modulo) {
-    int doDaiVanBan = vanBanRo.length();
-    if (doDaiVanBan % 2 != 0) {
-        cerr << "Lỗi: Độ dài văn bản phải là bội số của 2 (kích thước khóa)." << endl;
-        return "";
-    }
-
-    int mangSoVanBan[doDaiVanBan];
-    chuyenVanBanThanhSo(vanBanRo, mangSoVanBan);
-
-    string vanBanMaHoa = "";
-    for (int i = 0; i < doDaiVanBan; i += 2) {
-        int khoiVanBan[2][1];
-        khoiVanBan[0][0] = mangSoVanBan[i];
-        khoiVanBan[1][0] = mangSoVanBan[i + 1];
-
-        int khoiMaHoa[2][1];
-        nhanMaTran(khoa, khoiVanBan, modulo, khoiMaHoa);
-
-        vanBanMaHoa += (char)('A' + khoiMaHoa[0][0]);
-        vanBanMaHoa += (char)('A' + khoiMaHoa[1][0]);
-    }
-    return vanBanMaHoa;
-}
-
-// Hàm giải mã Hill
-string giaiMaHill(const string& vanBanMaHoa, int khoa[2][2], int modulo) {
-    int maTranNghichDao[2][2];
-    if (!timNghichDaoMaTran2x2(khoa, modulo, maTranNghichDao)) {
-        return "Lỗi: Không thể giải mã vì khóa không khả nghịch.";
-    }
-    return maHoaHill(vanBanMaHoa, maTranNghichDao, modulo); // Giải mã là mã hóa với khóa nghịch đảo
-}
-
-int main() {
-    int khoa[2][2];
-    cout << "Nhập ma trận khóa 2x2 (4 số nguyên, cách nhau bởi dấu cách hoặc xuống dòng):" << endl;
-    for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 2; ++j) {
-            cin >> khoa[i][j];
-        }
-    }
-
-    string vanBanRo;
-    cout << "Nhập văn bản rõ để mã hóa (chỉ ký tự chữ cái): ";
-    cin >> vanBanRo;
-
-    int modulo = 26; // Modulo 26 cho bảng chữ cái tiếng Anh
-
-    string vanBanMaHoa = maHoaHill(vanBanRo, khoa, modulo);
-    cout << "Văn bản mã hóa: " << vanBanMaHoa << endl;
-
-    string vanBanGiaiMa = giaiMaHill(vanBanMaHoa, khoa, modulo);
-    cout << "Văn bản giải mã: " << vanBanGiaiMa << endl;
-
-    return 0;
-}
+    maTranNghichDao[1][1] =
