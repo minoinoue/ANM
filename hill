@@ -38,4 +38,102 @@ bool timNghichDaoMaTran2x2(int maTran[2][2], int modulo, int maTranNghichDao[2][
     maTranNghichDao[0][0] = (maTran[1][1] * nghichDaoDinhThuc) % modulo;
     maTranNghichDao[0][1] = ((-maTran[0][1]) * nghichDaoDinhThuc % modulo + modulo) % modulo;
     maTranNghichDao[1][0] = ((-maTran[1][0]) * nghichDaoDinhThuc % modulo + modulo) % modulo;
-    maTranNghichDao[1][1] =
+    maTranNghichDao[1][1] = (maTran[0][0] * nghichDaoDinhThuc) % modulo;
+
+    return true;
+}
+
+// Ham nhan hai ma tran (cho truong hop nhan ma tran khoa voi khoi van ban)
+void nhanMaTran(int maTran1[2][2], int maTran2[2][1], int modulo, int ketQua[2][1]) {
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 1; ++j) {
+            ketQua[i][j] = 0;
+            for (int k = 0; k < 2; ++k) {
+                ketQua[i][j] = (ketQua[i][j] + maTran1[i][k] * maTran2[k][j]) % modulo;
+            }
+        }
+    }
+}
+
+// Ham chuyen van ban thanh mang so
+void chuyenVanBanThanhSo(const string& vanBan, int mangSo[]) {
+    for (size_t i = 0; i < vanBan.length(); ++i) {
+        if (isalpha(vanBan[i])) {
+            mangSo[i] = toupper(vanBan[i]) - 'A';
+        } else {
+            // Xu ly ky tu khong phai chu cai (co the bo qua hoac bao loi)
+            mangSo[i] = -1; // Danh dau ky tu khong hop le
+        }
+    }
+}
+
+// Ham chuyen mang so thanh van ban
+void chuyenSoThanhVanBan(const int mangSo[], int doDai, string& vanBanKetQua) {
+    vanBanKetQua = "";
+    for (int i = 0; i < doDai; ++i) {
+        if (mangSo[i] >= 0 && mangSo[i] < 26) {
+            vanBanKetQua += (char)('A' + mangSo[i]);
+        } else {
+            vanBanKetQua += '?'; // Ky tu thay the cho gia tri khong hop le
+        }
+    }
+}
+
+// Ham ma hoa Hill
+string maHoaHill(const string& vanBanRo, int khoa[2][2], int modulo) {
+    int doDaiVanBan = vanBanRo.length();
+    if (doDaiVanBan % 2 != 0) {
+        cerr << "Loi: Do dai van ban phai la boi so cua 2 (kich thuoc khoa)." << endl;
+        return "";
+    }
+
+    int mangSoVanBan[doDaiVanBan];
+    chuyenVanBanThanhSo(vanBanRo, mangSoVanBan);
+
+    string vanBanMaHoa = "";
+    for (int i = 0; i < doDaiVanBan; i += 2) {
+        int khoiVanBan[2][1];
+        khoiVanBan[0][0] = mangSoVanBan[i];
+        khoiVanBan[1][0] = mangSoVanBan[i + 1];
+
+        int khoiMaHoa[2][1];
+        nhanMaTran(khoa, khoiVanBan, modulo, khoiMaHoa);
+
+        vanBanMaHoa += (char)('A' + khoiMaHoa[0][0]);
+        vanBanMaHoa += (char)('A' + khoiMaHoa[1][0]);
+    }
+    return vanBanMaHoa;
+}
+
+// Ham giai ma Hill
+string giaiMaHill(const string& vanBanMaHoa, int khoa[2][2], int modulo) {
+    int maTranNghichDao[2][2];
+    if (!timNghichDaoMaTran2x2(khoa, modulo, maTranNghichDao)) {
+        return "Loi: Khong the giai ma vi khoa khong kha nghich.";
+    }
+    return maHoaHill(vanBanMaHoa, maTranNghichDao, modulo); // Giai ma la ma hoa voi khoa nghich dao
+}
+
+int main() {
+    int khoa[2][2];
+    cout << "Nhap ma tran khoa 2x2 (4 so nguyen, cach nhau boi dau cach hoac xuong dong):" << endl;
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 2; ++j) {
+            cin >> khoa[i][j];
+        }
+    }
+
+    string vanBanRo;
+    cout << "Nhap van ban ro de ma hoa (chi ky tu chu cai): ";
+    cin >> vanBanRo;
+
+    int modulo = 26; // Modulo 26 cho bang chu cai tieng Anh
+
+    string vanBanMaHoa = maHoaHill(vanBanRo, khoa, modulo);
+    cout << "Van ban ma hoa: " << vanBanMaHoa << endl;
+
+    string vanBanGiaiMa = giaiMaHill(vanBanMaHoa, khoa, modulo);
+    cout << "Van ban giai ma: " << vanBanGiaiMa << endl;
+
+    return 0;
+}
